@@ -59,7 +59,7 @@ namespace WebApi.SelfHosted.Handlers
         private object GetResultValue(int count, object[] pagedArray)
         {
             var genericType = typeof(ResultValue<>);
-            var t = pagedArray.First().GetType();
+            var t = pagedArray.Length > 0 ? pagedArray.First().GetType() : typeof(object);
             var constructedType = genericType.MakeGenericType(new[] { t });
 
             var ctor = constructedType
