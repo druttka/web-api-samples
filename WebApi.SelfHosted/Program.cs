@@ -1,6 +1,7 @@
 ﻿using System.Web.Http;
 using System.Web.Http.SelfHost;
 using System;
+using WebApi.SelfHosted.Handlers;
 
 namespace WebApi.SelfHosted
 {
@@ -25,7 +26,8 @@ namespace WebApi.SelfHosted
                 routeTemplate: "api/{controller}/{id}",
                 defaults: new { id = RouteParameter.Optional }
             );
-
+            
+            config.MessageHandlers.Add(new InlineCountHandler());
             return config;
         }
 
