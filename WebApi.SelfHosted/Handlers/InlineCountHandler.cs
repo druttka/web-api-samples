@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using WebApi.SelfHosted.Api.Controllers;
 
 namespace WebApi.SelfHosted.Handlers
 {
@@ -16,65 +15,79 @@ namespace WebApi.SelfHosted.Handlers
             var queryParams = request.RequestUri.ParseQueryString();
             var inlinecount = queryParams["$inlinecount"];
 
-            // No inline count, just do what they asked
+            // If there is no $inlinecount parameter, just forward to base
             if (string.Compare(inlinecount, "allpages", true) != 0) return base.SendAsync(request, cancellationToken);
 
+            // Otherwise, we have a continuation to work our magic...
             return base.SendAsync(request, cancellationToken).ContinueWith(
                 t =>
                 {
                     var response = t.Result;
+
                     // Only do work if the response is OK
                     if (response.StatusCode != HttpStatusCode.OK) return response;
 
-                    // Only do work if we are an ObjectContent of IQueryable
+                    // Only do work if we are an ObjectContent
                     var objectContent = response.Content as ObjectContent;
                     if (objectContent == null) return response;
 
-                    var pagedResults = GetValue(response.Content) as IQueryable<object>;
-                    if (pagedResults == null) return response;
+                    // Only do work if the ObjectContent's value is IQueryable<>
+                    var pagedResultsValue = this.GetValueFromObjectContent(response.Content);
+                    var interfaceType =
+                        pagedResultsValue.GetType().GetInterfaces().FirstOrDefault(
+                            i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IQueryable<>));
+                    if (interfaceType == null) return response;
 
-                    // Clone the response
-                    var newResponse = CloneResponse(response);
-
-                    // Reissue the request without a skip/take, because that is our count. Then return a 
-                    // response that has both pieces of data
+                    // Reissue the request without a skip/take to get our count. This will preserve filtering which
+                    // could affect the count
                     var newRequest = new HttpRequestMessage(
                         request.Method,
                         request.RequestUri.AbsoluteUri.Replace("$skip=", "$_skip=").Replace("$top=", "$_top="));
 
                     // Get the result with no paging
                     var unpagedTaskResult = base.SendAsync(newRequest, cancellationToken).Result;
-                    var unpagedResults = GetValue(unpagedTaskResult.Content) as IQueryable<object>;
+                    var unpagedResultsValue = this.GetValueFromObjectContent(unpagedTaskResult.Content);
 
-                    // Use the total count, but the paged results
-                    var pagedArray = pagedResults.ToArray();
-                    var resultValue = GetResultValue(unpagedResults.Count(), pagedArray);
+                    // Clone the response
+                    var newResponse = CloneResponse(response);
 
-                    SetContent(newResponse, resultValue);
+                    // Get a ResultValue<T> for our interfaceType
+                    var genericType = interfaceType.GetGenericArguments().First();
 
+                    var resultsValueMethod =
+                        this.GetType().GetMethod("CreateResultValue", BindingFlags.Instance | BindingFlags.NonPublic).MakeGenericMethod(new[] { genericType });
+                    // Create the result value with dynamic type
+                    var resultValue = resultsValueMethod.Invoke(
+                        this, new[] { unpagedResultsValue, pagedResultsValue });
+
+                    // Push the new content and return the response
+                    var newObjectContent = CreateObjectContent(resultValue);
+                    newResponse.Content = newObjectContent;
                     return newResponse;
                 });
         }
-
-        private object GetResultValue(int count, object[] pagedArray)
+        
+        // Dynamically invoked for the T returned by the resulting ApiController
+        private ResultValue<T> CreateResultValue<T>(IQueryable<T> unpagedResults, IQueryable<T> pagedResults)
         {
             var genericType = typeof(ResultValue<>);
-            var t = pagedArray.Length > 0 ? pagedArray.First().GetType() : typeof(object);
-            var constructedType = genericType.MakeGenericType(new[] { t });
+            var constructedType = genericType.MakeGenericType(new[] { typeof(T) });
 
             var ctor = constructedType
                 .GetConstructors().First();
 
             var instance = ctor.Invoke(null);
+            
             var countProperty = constructedType.GetProperty("Count");
-            countProperty.SetValue(instance, count, null);
+            countProperty.SetValue(instance, unpagedResults.Count(), null);
 
-            var setResultsMethod = constructedType.GetMethod("SetResults");
-            setResultsMethod.Invoke(instance, new[] { pagedArray });
+            var resultsProperty = constructedType.GetProperty("Results");
+            resultsProperty.SetValue(instance, pagedResults.ToArray(), null);
 
-            return instance;
+            return instance as ResultValue<T>;
         }
 
+        // This is just a helper to echo the properties onto a new HttpResponseMessage
         private HttpResponseMessage CloneResponse(HttpResponseMessage response)
         {
             var clone = new HttpResponseMessage
@@ -93,18 +106,8 @@ namespace WebApi.SelfHosted.Handlers
             return clone;
         }
 
-        public class ResultValue<T>
-        {
-            public int Count { get; set; }
-            public T[] Results { get; set; }
-
-            public void SetResults(object[] results)
-            {
-                Results = results.Select(x => (T)x).ToArray();
-            }
-        }
-
-        private object GetValue(HttpContent content)
+        // We need this because ObjectContent's Value property is internal
+        private object GetValueFromObjectContent(HttpContent content)
         {
             var property = typeof(ObjectContent).GetProperty("Value", BindingFlags.Instance | BindingFlags.NonPublic);
             if (property == null) return null;
@@ -112,11 +115,12 @@ namespace WebApi.SelfHosted.Handlers
             return property.GetValue(content, null);
         }
 
-        private void SetContent(HttpResponseMessage newResponse, object value)
+        // We need this because ObjectContent's constructors are internal
+        private ObjectContent CreateObjectContent(object value)
         {
-            if (value == null) return;
+            if (value == null) return null;
 
-            var ctor = typeof(ObjectContent).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).Where(
+            var ctor = typeof(ObjectContent).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).FirstOrDefault(
                 ci =>
                 {
                     var parameters = ci.GetParameters();
@@ -124,10 +128,10 @@ namespace WebApi.SelfHosted.Handlers
                     if (parameters[0].ParameterType != typeof(Type)) return false;
                     if (parameters[1].ParameterType != typeof(object)) return false;
                     return true;
-                }).FirstOrDefault();
+                });
 
-            if (ctor == null) return;
-            newResponse.Content = ctor.Invoke(new[] { value.GetType(), value }) as ObjectContent;
+            if (ctor == null) return null;
+            return ctor.Invoke(new[] { value.GetType(), value }) as ObjectContent;
         }
 
     }
