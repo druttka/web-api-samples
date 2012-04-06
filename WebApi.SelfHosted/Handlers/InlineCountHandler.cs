@@ -14,56 +14,62 @@ namespace WebApi.SelfHosted.Handlers
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, System.Threading.CancellationToken cancellationToken)
         {
-            if(!ShouldInlineCount(request))
+            if (!ShouldInlineCount(request))
                 return base.SendAsync(request, cancellationToken);
 
             // Otherwise, we have a continuation to work our magic...
             return base.SendAsync(request, cancellationToken).ContinueWith(
                 t =>
-                    {
-                        var response = t.Result;
+                {
+                    var response = t.Result;
 
-                        // Is this a response we can work with?
-                        if (!ResponseIsValid(response)) return response;
+                    // Is this a response we can work with?
+                    if (!ResponseIsValid(response)) return response;
 
-                        var pagedResultsValue = this.GetValueFromObjectContent(response.Content);
-                        Type queriedType;
+                    var pagedResultsValue = this.GetValueFromObjectContent(response.Content);
+                    Type queriedType;
 
-                        // Can we find the underlying type of the results?
-                        if (pagedResultsValue is IQueryable) 
-                            queriedType = ((IQueryable)pagedResultsValue).ElementType;
-                        else
-                            return response;
-
-                        // Reissue the request without a skip/take to get our count. This will preserve filtering which
-                        // could affect the count
-                        var newRequest = new HttpRequestMessage(
-                            request.Method,
-                            request.RequestUri.AbsoluteUri.Replace("$skip=", "$_skip=").Replace("$top=", "$_top="));
-
-                        var unpagedResult = base.SendAsync(newRequest, cancellationToken).Result;
-                        var unpagedResultsValue = this.GetValueFromObjectContent(unpagedResult.Content);
-
-                        var resultsValueMethod =
-                            this.GetType().GetMethod(
-                                "CreateResultValue", BindingFlags.Instance | BindingFlags.NonPublic).MakeGenericMethod(
-                                    new[] { queriedType });
-                        // Create the result value with dynamic type
-                        var resultValue = resultsValueMethod.Invoke(
-                            this, new[] { unpagedResultsValue, pagedResultsValue });
-
-                        // Push the new content and return the response
-                        response.Content = CreateObjectContent(
-                            resultValue, response.Content.Headers.ContentType); 
+                    // Can we find the underlying type of the results?
+                    if (pagedResultsValue is IQueryable)
+                        queriedType = ((IQueryable)pagedResultsValue).ElementType;
+                    else
                         return response;
-                    });
+
+                    // HACK: We're going to temporarily update the RequestUri and put it back later. In previous
+                    // versions, we created a new HttpRequestMessage, but this saves us from a lot of cloning.
+                    // Use at your own risk ;)
+                    var originalUriString = request.RequestUri.AbsoluteUri;
+                    var newUriString = request.RequestUri.AbsoluteUri.Replace("$skip=", "$_skip=").Replace("$top=", "$_top=");
+                    request.RequestUri = new Uri(newUriString);
+
+                    // Reissue the request without a skip/take to get our count. This will preserve filtering which
+                    // could affect the count
+                    var unpagedResult = base.SendAsync(request, cancellationToken).Result;
+                    var unpagedResultsValue = this.GetValueFromObjectContent(unpagedResult.Content);
+
+                    // HACK: See above hack.
+                    request.RequestUri = new Uri(originalUriString);
+
+                    var resultsValueMethod =
+                        this.GetType().GetMethod(
+                            "CreateResultValue", BindingFlags.Instance | BindingFlags.NonPublic).MakeGenericMethod(
+                                new[] { queriedType });
+                    // Create the result value with dynamic type
+                    var resultValue = resultsValueMethod.Invoke(
+                        this, new[] { unpagedResultsValue, pagedResultsValue });
+
+                    // Push the new content and return the response
+                    response.Content = CreateObjectContent(
+                        resultValue, response.Content.Headers.ContentType);
+                    return response;
+                });
         }
 
         private bool ResponseIsValid(HttpResponseMessage response)
         {
             // Only do work if the response is OK
             if (response == null || response.StatusCode != HttpStatusCode.OK) return false;
-            
+
             // Only do work if we are an ObjectContent
             return response.Content is ObjectContent;
         }
@@ -85,7 +91,7 @@ namespace WebApi.SelfHosted.Handlers
                 .GetConstructors().First();
 
             var instance = ctor.Invoke(null);
-            
+
             var countProperty = constructedType.GetProperty("Count");
             countProperty.SetValue(instance, unpagedResults.Count(), null);
 
