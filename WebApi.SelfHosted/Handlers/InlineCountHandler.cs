@@ -25,10 +25,13 @@ namespace WebApi.SelfHosted.Handlers
                         if (!ResponseIsValid(response)) return response;
 
                         var pagedResultsValue = this.GetValueFromObjectContent(response.Content);
+                        Type queriedType;
 
                         // Can we find the underlying type of the results?
-                        var queriedType = GetQueriedType(pagedResultsValue);
-                        if (queriedType == null) return response;
+                        if (pagedResultsValue is IQueryable) 
+                            queriedType = ((IQueryable)pagedResultsValue).ElementType;
+                        else
+                            return response;
 
                         // Reissue the request without a skip/take to get our count. This will preserve filtering which
                         // could affect the count
@@ -60,21 +63,6 @@ namespace WebApi.SelfHosted.Handlers
             
             // Only do work if we are an ObjectContent
             return response.Content is ObjectContent;
-        }
-
-        private Type GetQueriedType(object value)
-        {
-            // TODO: This assumes we aren't looking at a class that implements IQueryable<Foo> as well as
-            // IQueryable<Bar>. If that was the case, we might pick up Foo even though the results are Bars
-            var interfaceType =
-                value.GetType().GetInterfaces().FirstOrDefault(
-                    i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IQueryable<>));
-            
-            // If we aren't looking at an IQueryable<>, bail out
-            if (interfaceType == null) return null;
-
-            // We have IQueryable<T>, get T
-            return interfaceType.GetGenericArguments().FirstOrDefault();
         }
 
         private bool ShouldInlineCount(HttpRequestMessage request)
