@@ -48,9 +48,6 @@ namespace WebApi.SelfHosted.Handlers
                     var unpagedTaskResult = base.SendAsync(newRequest, cancellationToken).Result;
                     var unpagedResultsValue = this.GetValueFromObjectContent(unpagedTaskResult.Content);
 
-                    // Clone the response
-                    var newResponse = CloneResponse(response);
-
                     // Get a ResultValue<T> for our interfaceType
                     var genericType = interfaceType.GetGenericArguments().First();
 
@@ -61,9 +58,8 @@ namespace WebApi.SelfHosted.Handlers
                         this, new[] { unpagedResultsValue, pagedResultsValue });
 
                     // Push the new content and return the response
-                    var newObjectContent = CreateObjectContent(resultValue);
-                    newResponse.Content = newObjectContent;
-                    return newResponse;
+                    response.Content = CreateObjectContent(resultValue);
+                    return response;
                 });
         }
         
@@ -85,25 +81,6 @@ namespace WebApi.SelfHosted.Handlers
             resultsProperty.SetValue(instance, pagedResults.ToArray(), null);
 
             return instance as ResultValue<T>;
-        }
-
-        // This is just a helper to echo the properties onto a new HttpResponseMessage
-        private HttpResponseMessage CloneResponse(HttpResponseMessage response)
-        {
-            var clone = new HttpResponseMessage
-            {
-                ReasonPhrase = response.ReasonPhrase,
-                RequestMessage = response.RequestMessage,
-                Version = response.Version,
-                StatusCode = response.StatusCode
-            };
-
-            foreach (KeyValuePair<string, IEnumerable<string>> header in response.Headers)
-            {
-                clone.Headers.Add(header.Key, header.Value);
-            }
-
-            return clone;
         }
 
         // We need this because ObjectContent's Value property is internal
