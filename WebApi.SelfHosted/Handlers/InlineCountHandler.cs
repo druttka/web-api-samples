@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Net.Http.Formatting;
+using System.Net.Http.Headers;
 
 namespace WebApi.SelfHosted.Handlers
 {
@@ -51,7 +53,8 @@ namespace WebApi.SelfHosted.Handlers
                             this, new[] { unpagedResultsValue, pagedResultsValue });
 
                         // Push the new content and return the response
-                        response.Content = CreateObjectContent(resultValue);
+                        response.Content = CreateObjectContent(
+                            resultValue, response.Content.Headers.ContentType); 
                         return response;
                     });
         }
@@ -104,7 +107,7 @@ namespace WebApi.SelfHosted.Handlers
         }
 
         // We need this because ObjectContent's constructors are internal
-        private ObjectContent CreateObjectContent(object value)
+        private ObjectContent CreateObjectContent(object value, MediaTypeHeaderValue mthv)
         {
             if (value == null) return null;
 
@@ -112,14 +115,16 @@ namespace WebApi.SelfHosted.Handlers
                 ci =>
                 {
                     var parameters = ci.GetParameters();
-                    if (parameters.Length != 2) return false;
+                    if (parameters.Length != 3) return false;
                     if (parameters[0].ParameterType != typeof(Type)) return false;
                     if (parameters[1].ParameterType != typeof(object)) return false;
+                    if (parameters[2].ParameterType != typeof(MediaTypeHeaderValue)) return false;
                     return true;
                 });
 
             if (ctor == null) return null;
-            return ctor.Invoke(new[] { value.GetType(), value }) as ObjectContent;
+
+            return ctor.Invoke(new[] { value.GetType(), value, mthv }) as ObjectContent;
         }
 
     }
