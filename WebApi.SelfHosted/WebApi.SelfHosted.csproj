@@ -75,6 +75,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Api\SpeakerController.cs" />
+    <Compile Include="Handlers\InlineCountHandler.cs" />
+    <Compile Include="Handlers\ResultValue.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
