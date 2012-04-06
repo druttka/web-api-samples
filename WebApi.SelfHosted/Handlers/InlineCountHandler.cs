@@ -18,46 +18,63 @@ namespace WebApi.SelfHosted.Handlers
             // Otherwise, we have a continuation to work our magic...
             return base.SendAsync(request, cancellationToken).ContinueWith(
                 t =>
-                {
-                    var response = t.Result;
+                    {
+                        var response = t.Result;
 
-                    // Only do work if the response is OK
-                    if (response.StatusCode != HttpStatusCode.OK) return response;
+                        // Is this a response we can work with?
+                        if (!ResponseIsValid(response)) return response;
 
-                    // Only do work if we are an ObjectContent
-                    var objectContent = response.Content as ObjectContent;
-                    if (objectContent == null) return response;
+                        var pagedResultsValue = this.GetValueFromObjectContent(response.Content);
 
-                    // Only do work if the ObjectContent's value is IQueryable<>
-                    var pagedResultsValue = this.GetValueFromObjectContent(response.Content);
-                    var interfaceType =
-                        pagedResultsValue.GetType().GetInterfaces().FirstOrDefault(
-                            i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IQueryable<>));
-                    if (interfaceType == null) return response;
+                        // Can we find the underlying type of the results?
+                        var queriedType = GetQueriedType(pagedResultsValue);
+                        if (queriedType == null) return response;
 
-                    // Reissue the request without a skip/take to get our count. This will preserve filtering which
-                    // could affect the count
-                    var newRequest = new HttpRequestMessage(
-                        request.Method,
-                        request.RequestUri.AbsoluteUri.Replace("$skip=", "$_skip=").Replace("$top=", "$_top="));
+                        // Reissue the request without a skip/take to get our count. This will preserve filtering which
+                        // could affect the count
+                        var newRequest = new HttpRequestMessage(
+                            request.Method,
+                            request.RequestUri.AbsoluteUri.Replace("$skip=", "$_skip=").Replace("$top=", "$_top="));
 
-                    // Get the result with no paging
-                    var unpagedTaskResult = base.SendAsync(newRequest, cancellationToken).Result;
-                    var unpagedResultsValue = this.GetValueFromObjectContent(unpagedTaskResult.Content);
+                        var unpagedResult = base.SendAsync(newRequest, cancellationToken).Result;
+                        var unpagedResultsValue = this.GetValueFromObjectContent(unpagedResult.Content);
 
-                    // Get a ResultValue<T> for our interfaceType
-                    var genericType = interfaceType.GetGenericArguments().First();
+                        var resultsValueMethod =
+                            this.GetType().GetMethod(
+                                "CreateResultValue", BindingFlags.Instance | BindingFlags.NonPublic).MakeGenericMethod(
+                                    new[] { queriedType });
+                        // Create the result value with dynamic type
+                        var resultValue = resultsValueMethod.Invoke(
+                            this, new[] { unpagedResultsValue, pagedResultsValue });
 
-                    var resultsValueMethod =
-                        this.GetType().GetMethod("CreateResultValue", BindingFlags.Instance | BindingFlags.NonPublic).MakeGenericMethod(new[] { genericType });
-                    // Create the result value with dynamic type
-                    var resultValue = resultsValueMethod.Invoke(
-                        this, new[] { unpagedResultsValue, pagedResultsValue });
+                        // Push the new content and return the response
+                        response.Content = CreateObjectContent(resultValue);
+                        return response;
+                    });
+        }
 
-                    // Push the new content and return the response
-                    response.Content = CreateObjectContent(resultValue);
-                    return response;
-                });
+        private bool ResponseIsValid(HttpResponseMessage response)
+        {
+            // Only do work if the response is OK
+            if (response == null || response.StatusCode != HttpStatusCode.OK) return false;
+            
+            // Only do work if we are an ObjectContent
+            return response.Content is ObjectContent;
+        }
+
+        private Type GetQueriedType(object value)
+        {
+            // TODO: This assumes we aren't looking at a class that implements IQueryable<Foo> as well as
+            // IQueryable<Bar>. If that was the case, we might pick up Foo even though the results are Bars
+            var interfaceType =
+                value.GetType().GetInterfaces().FirstOrDefault(
+                    i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IQueryable<>));
+            
+            // If we aren't looking at an IQueryable<>, bail out
+            if (interfaceType == null) return null;
+
+            // We have IQueryable<T>, get T
+            return interfaceType.GetGenericArguments().FirstOrDefault();
         }
 
         private bool ShouldInlineCount(HttpRequestMessage request)
@@ -90,10 +107,12 @@ namespace WebApi.SelfHosted.Handlers
         // We need this because ObjectContent's Value property is internal
         private object GetValueFromObjectContent(HttpContent content)
         {
-            var property = typeof(ObjectContent).GetProperty("Value", BindingFlags.Instance | BindingFlags.NonPublic);
-            if (property == null) return null;
+            if (!(content is ObjectContent)) return null;
 
-            return property.GetValue(content, null);
+            var valueProperty = typeof(ObjectContent).GetProperty("Value", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (valueProperty == null) return null;
+
+            return valueProperty.GetValue(content, null);
         }
 
         // We need this because ObjectContent's constructors are internal
