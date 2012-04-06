@@ -12,11 +12,8 @@ namespace WebApi.SelfHosted.Handlers
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, System.Threading.CancellationToken cancellationToken)
         {
-            var queryParams = request.RequestUri.ParseQueryString();
-            var inlinecount = queryParams["$inlinecount"];
-
-            // If there is no $inlinecount parameter, just forward to base
-            if (string.Compare(inlinecount, "allpages", true) != 0) return base.SendAsync(request, cancellationToken);
+            if(!ShouldInlineCount(request))
+                return base.SendAsync(request, cancellationToken);
 
             // Otherwise, we have a continuation to work our magic...
             return base.SendAsync(request, cancellationToken).ContinueWith(
@@ -62,7 +59,14 @@ namespace WebApi.SelfHosted.Handlers
                     return response;
                 });
         }
-        
+
+        private bool ShouldInlineCount(HttpRequestMessage request)
+        {
+            var queryParams = request.RequestUri.ParseQueryString();
+            var inlinecount = queryParams["$inlinecount"];
+            return string.Compare(inlinecount, "allpages", true) == 0;
+        }
+
         // Dynamically invoked for the T returned by the resulting ApiController
         private ResultValue<T> CreateResultValue<T>(IQueryable<T> unpagedResults, IQueryable<T> pagedResults)
         {
