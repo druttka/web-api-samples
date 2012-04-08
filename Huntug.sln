@@ -11,6 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{579617
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApi.MvcHosted", "WebApi.MvcHosted\WebApi.MvcHosted.csproj", "{13701C0B-6717-4E00-A028-7CD55F59D28D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApi.Common", "WebApi.Common\WebApi.Common.csproj", "{0A7165C9-781F-45EA-989C-880EC2F9D683}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,16 @@ Global
 		{13701C0B-6717-4E00-A028-7CD55F59D28D}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{13701C0B-6717-4E00-A028-7CD55F59D28D}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{13701C0B-6717-4E00-A028-7CD55F59D28D}.Release|x86.ActiveCfg = Release|Any CPU
+		{0A7165C9-781F-45EA-989C-880EC2F9D683}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A7165C9-781F-45EA-989C-880EC2F9D683}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A7165C9-781F-45EA-989C-880EC2F9D683}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{0A7165C9-781F-45EA-989C-880EC2F9D683}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{0A7165C9-781F-45EA-989C-880EC2F9D683}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0A7165C9-781F-45EA-989C-880EC2F9D683}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A7165C9-781F-45EA-989C-880EC2F9D683}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A7165C9-781F-45EA-989C-880EC2F9D683}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{0A7165C9-781F-45EA-989C-880EC2F9D683}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{0A7165C9-781F-45EA-989C-880EC2F9D683}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

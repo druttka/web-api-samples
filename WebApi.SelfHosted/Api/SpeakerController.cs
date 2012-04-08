@@ -1,34 +1,20 @@
 ﻿using System.Linq;
 using System.Web.Http;
+using System.Collections.Generic;
+using WebApi.Common;
 
 namespace WebApi.SelfHosted.Api.Controllers
 {
     public class SpeakerController : ApiController
     {
+        private ISpeakerRepository _speakerRepository = new FakeSpeakerRepository();
+
         // GET /api/<controller>
         public IQueryable<Speaker> Get()
         {
-            return Speakers.AsQueryable();
-        }
-
-        private Speaker[] Speakers
-        {
-            get
-            {
-                return new[]
-                    {
-                        new Speaker { Name = "Dale Cooper", Fame = 100 },
-                        new Speaker { Name = "Scott Hanselman", Fame = 8999},
-                        new Speaker {Name = "Goku", Fame = 9001},
-                        new Speaker { Name = "David Ruttka", Fame = 2 }
-                    };
-            }
+            return _speakerRepository.Speakers.AsQueryable();
         }
     }
 
-    public class Speaker
-    {
-        public string Name { get; set; }
-        public int Fame { get; set; }
-    }
+
 }
