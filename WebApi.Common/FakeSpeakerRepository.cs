@@ -24,6 +24,14 @@ namespace WebApi.Common
             }
         }
 
+        public void Store(Speaker speaker)
+        {
+            if (!speaker.Id.HasValue)
+                speaker.Id = _speakers.Keys.Max() + 1;
+
+            _speakers[speaker.Id.Value] = speaker;
+        }
+
         private void AddDummy(int id, string name, int fame)
         {
             var speaker = new Speaker { Id = id, Name = name, Fame = fame };
