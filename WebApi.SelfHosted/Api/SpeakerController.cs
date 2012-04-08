@@ -9,12 +9,15 @@ namespace WebApi.SelfHosted.Api.Controllers
     {
         private ISpeakerRepository _speakerRepository = new FakeSpeakerRepository();
 
-        // GET /api/<controller>
         public IQueryable<Speaker> Get()
         {
-            return _speakerRepository.Speakers.AsQueryable();
+            return _speakerRepository.Speakers;
+        }
+
+        public Speaker Get(int id)
+        {
+            return _speakerRepository.Speakers
+                .FirstOrDefault(x => x.Id == id);
         }
     }
-
-
 }

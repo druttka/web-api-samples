@@ -6,14 +6,14 @@ namespace WebApi.Common
 {
     public class FakeSpeakerRepository : ISpeakerRepository
     {
-        private Dictionary<string, Speaker> _speakers = new Dictionary<string, Speaker>();
+        private Dictionary<int, Speaker> _speakers = new Dictionary<int, Speaker>();
 
         public FakeSpeakerRepository()
         {
-            AddDummy("David Ruttka", 2);
-            AddDummy("Scott Hanselman", 8999);
-            AddDummy("Dale Cooper", 100);
-            AddDummy("Goku", 9001);
+            AddDummy(1, "David Ruttka", 2);
+            AddDummy(2, "Scott Hanselman", 8999);
+            AddDummy(3, "Dale Cooper", 100);
+            AddDummy(4, "Goku", 9001);
         }
 
         public IQueryable<Speaker> Speakers
@@ -24,10 +24,10 @@ namespace WebApi.Common
             }
         }
 
-        private void AddDummy(string name, int fame)
+        private void AddDummy(int id, string name, int fame)
         {
-            var speaker = new Speaker { Name = name, Fame = fame };
-            _speakers[name] = speaker;
+            var speaker = new Speaker { Id = id, Name = name, Fame = fame };
+            _speakers[id] = speaker;
         }
     }
 }
