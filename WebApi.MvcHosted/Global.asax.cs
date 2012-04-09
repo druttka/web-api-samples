@@ -2,6 +2,8 @@
 using System.Web.Mvc;
 using System.Web.Routing;
 using WebApi.SelfHosted.Handlers;
+using WebApi.Common;
+using WebApi.SelfHosted.Api.Controllers;
 
 namespace WebApi.MvcHosted
 {
@@ -40,6 +42,22 @@ namespace WebApi.MvcHosted
 
             RegisterGlobalFilters(GlobalFilters.Filters);
             RegisterRoutes(RouteTable.Routes);
+
+            RegisterDependencies();
+        }
+
+        private void RegisterDependencies()
+        {
+            GlobalConfiguration.Configuration.ServiceResolver.SetResolver(
+                t =>
+                {
+                    return (t == typeof(SpeakerController)) ? new SpeakerController(new FakeSpeakerRepository()) : null;
+                },
+                t =>
+                {
+                    return (t == typeof(SpeakerController)) ? new[] { new SpeakerController(new FakeSpeakerRepository()) } : new object[] {};
+                }
+                );
         }
     }
 }

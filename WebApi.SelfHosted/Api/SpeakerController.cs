@@ -9,7 +9,12 @@ namespace WebApi.SelfHosted.Api.Controllers
 {
     public class SpeakerController : ApiController
     {
-        private readonly ISpeakerRepository _speakerRepository = new FakeSpeakerRepository();
+        private readonly ISpeakerRepository _speakerRepository;
+
+        public SpeakerController(ISpeakerRepository speakerRepository)
+        {
+            _speakerRepository = speakerRepository;
+        }
 
         public IQueryable<Speaker> Get()
         {
@@ -22,7 +27,7 @@ namespace WebApi.SelfHosted.Api.Controllers
                 .FirstOrDefault(x => x.Id == id);
 
             if (speaker == null)
-                return new HttpResponseMessage<Speaker>(HttpStatusCode.NotFound);
+                throw new HttpResponseException(HttpStatusCode.NotFound);
 
             return new HttpResponseMessage<Speaker>(speaker);
         }
