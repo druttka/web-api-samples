@@ -150,6 +150,7 @@
     <Compile Include="..\WebApi.SelfHosted\Handlers\ResultValue.cs">
       <Link>Handlers\ResultValue.cs</Link>
     </Compile>
+    <Compile Include="Filters\TokenAuthAttribute.cs" />
     <Compile Include="Formatters\JsonNetFormatter.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>

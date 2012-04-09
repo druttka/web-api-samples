@@ -74,7 +74,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Api\SpeakerController.cs" />
     <Compile Include="Handlers\InlineCountHandler.cs" />
     <Compile Include="Handlers\ResultValue.cs" />
     <Compile Include="Program.cs" />
@@ -89,6 +88,9 @@
       <Project>{0A7165C9-781F-45EA-989C-880EC2F9D683}</Project>
       <Name>WebApi.Common</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Api\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
