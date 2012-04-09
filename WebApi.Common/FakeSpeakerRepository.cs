@@ -16,7 +16,7 @@ namespace WebApi.Common
             AddDummy(4, "Goku", 9001);
         }
 
-        public IQueryable<Speaker> Speakers
+        public IQueryable<Speaker> All
         {
             get
             {
@@ -24,12 +24,33 @@ namespace WebApi.Common
             }
         }
 
+        public Speaker Find(int id)
+        {
+            return _speakers[id];
+        }
+
         public void Store(Speaker speaker)
         {
-            if (!speaker.Id.HasValue)
+            if (speaker.Id == 0)
                 speaker.Id = _speakers.Keys.Max() + 1;
 
-            _speakers[speaker.Id.Value] = speaker;
+            _speakers[speaker.Id] = speaker;
+        }
+
+        public void Delete(int id)
+        {
+            // If it's not there, no big deal
+            _speakers.Remove(id);
+        }
+
+        public void SaveChanges()
+        {
+            // Not much to do in this one
+        }
+
+        public void Dispose()
+        {
+            // Not much to do in this one
         }
 
         private void AddDummy(int id, string name, int fame)

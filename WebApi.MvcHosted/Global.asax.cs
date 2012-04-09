@@ -4,11 +4,16 @@ using System.Web.Routing;
 using WebApi.SelfHosted.Handlers;
 using System;
 using WebApi.MvcHosted.Infrastructure;
+using Raven.Client;
+using Raven.Client.Document;
 
 namespace WebApi.MvcHosted
 {
     public class WebApiApplication : System.Web.HttpApplication
     {
+        private static IDocumentStore _documentStore;
+        public static IDocumentStore DocumentStore { get { return _documentStore; } }
+
         public static void RegisterGlobalFilters(GlobalFilterCollection filters)
         {
             filters.Add(new HandleErrorAttribute());
@@ -39,6 +44,8 @@ namespace WebApi.MvcHosted
 
             RegisterGlobalFilters(GlobalFilters.Filters);
             RegisterRoutes(RouteTable.Routes);
+
+            InitializeRavenDb();
 
             RegisterDependencies();
         }
@@ -78,6 +85,12 @@ namespace WebApi.MvcHosted
 
             // Another way to do it:
             GlobalConfiguration.Configuration.ServiceResolver.SetResolver(new AutofacResolver());
+        }
+
+        private void InitializeRavenDb()
+        {
+            _documentStore = new DocumentStore {ConnectionStringName="Raven"};
+            _documentStore.Initialize();
         }
     }
 }

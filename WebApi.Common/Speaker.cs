@@ -6,7 +6,7 @@ namespace WebApi.Common
 {
     public class Speaker
     {
-        public int? Id { get; set; }
+        public int Id { get; set; }
         public string Name { get; set; }
         public int Fame { get; set; }
     }

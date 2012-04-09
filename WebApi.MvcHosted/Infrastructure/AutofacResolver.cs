@@ -2,6 +2,7 @@ using System;
 using Autofac;
 using WebApi.SelfHosted.Api.Controllers;
 using WebApi.Common;
+using Raven.Client;
 
 namespace WebApi.MvcHosted.Infrastructure
 {
@@ -50,8 +51,10 @@ namespace WebApi.MvcHosted.Infrastructure
         private IContainer CreateDefaultContainer()
         {
             var builder = new ContainerBuilder();
-            builder.RegisterType<FakeSpeakerRepository>().As<ISpeakerRepository>();
+            builder.Register(t => { return WebApiApplication.DocumentStore.OpenSession(); }).As<IDocumentSession>();
+            builder.RegisterType<RavenSpeakerRepository>().As<ISpeakerRepository>();
             builder.RegisterType<SpeakerController>();
+
             return builder.Build();
         }
     }

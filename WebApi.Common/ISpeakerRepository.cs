@@ -4,9 +4,12 @@ using System.Linq;
 
 namespace WebApi.Common
 {
-    public interface ISpeakerRepository
+    public interface ISpeakerRepository : IDisposable
     {
-        IQueryable<Speaker> Speakers { get; }
+        IQueryable<Speaker> All { get; }
+        Speaker Find(int id);
         void Store(Speaker speaker);
+        void Delete(int id);
+        void SaveChanges();
     }
 }
