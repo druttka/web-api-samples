@@ -6,6 +6,7 @@ using System;
 using WebApi.MvcHosted.Infrastructure;
 using Raven.Client;
 using Raven.Client.Document;
+using WebApi.MvcHosted.Filters;
 
 namespace WebApi.MvcHosted
 {
@@ -48,6 +49,8 @@ namespace WebApi.MvcHosted
             InitializeRavenDb();
 
             RegisterDependencies();
+
+            //GlobalConfiguration.Configuration.Filters.Add(new LogErrorFilter());
         }
 
         private void RegisterDependencies()
