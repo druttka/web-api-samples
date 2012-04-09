@@ -2,9 +2,6 @@
 using System.Web.Mvc;
 using System.Web.Routing;
 using WebApi.SelfHosted.Handlers;
-using WebApi.Common;
-using Autofac;
-using WebApi.SelfHosted.Api.Controllers;
 using System;
 using WebApi.MvcHosted.Infrastructure;
 

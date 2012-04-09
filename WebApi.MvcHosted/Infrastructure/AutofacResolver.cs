@@ -22,7 +22,7 @@ namespace WebApi.MvcHosted.Infrastructure
             _container = container;
         }
 
-        public System.Object GetService(System.Type serviceType)
+        public Object GetService(Type serviceType)
         {
             try
             {
