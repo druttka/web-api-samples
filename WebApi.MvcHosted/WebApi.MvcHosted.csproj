@@ -139,17 +139,19 @@
     <Reference Include="System.Web.Routing" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Configuration" />
+    <Reference Include="WebActivator">
+      <HintPath>..\packages\WebActivator.1.4.4\lib\net40\WebActivator.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\WebApi.SelfHosted\Api\SpeakerController.cs">
-      <Link>Api\SpeakerController.cs</Link>
-    </Compile>
     <Compile Include="..\WebApi.SelfHosted\Handlers\InlineCountHandler.cs">
       <Link>Handlers\InlineCountHandler.cs</Link>
     </Compile>
     <Compile Include="..\WebApi.SelfHosted\Handlers\ResultValue.cs">
       <Link>Handlers\ResultValue.cs</Link>
     </Compile>
+    <Compile Include="Api\SpeakerController.cs" />
+    <Compile Include="App_Start\FormsAuthenticationConfig.cs" />
     <Compile Include="Filters\TokenAuthAttribute.cs" />
     <Compile Include="Formatters\JsonNetFormatter.cs" />
     <Compile Include="Global.asax.cs">
@@ -157,6 +159,7 @@
     </Compile>
     <Compile Include="Infrastructure\AutofacResolver.cs" />
     <Compile Include="Filters\LogErrorFilter.cs" />
+    <Compile Include="Infrastructure\SuppressFormsAuthenticationRedirectModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
