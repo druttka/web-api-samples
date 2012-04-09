@@ -6,6 +6,7 @@ using WebApi.Common;
 using Autofac;
 using WebApi.SelfHosted.Api.Controllers;
 using System;
+using WebApi.MvcHosted.Infrastructure;
 
 namespace WebApi.MvcHosted
 {
