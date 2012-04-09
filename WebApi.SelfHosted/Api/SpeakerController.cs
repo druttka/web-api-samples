@@ -13,21 +13,6 @@ namespace WebApi.SelfHosted.Api.Controllers
     {
         private readonly ISpeakerRepository _speakerRepository;
 
-        public override Task<HttpResponseMessage> ExecuteAsync(System.Web.Http.Controllers.HttpControllerContext controllerContext, System.Threading.CancellationToken cancellationToken)
-        {
-            return base.ExecuteAsync(controllerContext, cancellationToken)
-                .ContinueWith(task =>
-                {
-                    using (_speakerRepository)
-                    {
-                        if (task != null && task.Status != TaskStatus.Faulted)
-                            _speakerRepository.SaveChanges();
-                    }
-
-                    return task;
-                }).Unwrap();
-        }
-
         public SpeakerController(ISpeakerRepository speakerRepository)
         {
             if (speakerRepository == null)
@@ -73,6 +58,21 @@ namespace WebApi.SelfHosted.Api.Controllers
         {
             _speakerRepository.Delete(id);
             return new HttpResponseMessage(HttpStatusCode.NoContent);
+        }
+
+        public override Task<HttpResponseMessage> ExecuteAsync(System.Web.Http.Controllers.HttpControllerContext controllerContext, System.Threading.CancellationToken cancellationToken)
+        {
+            return base.ExecuteAsync(controllerContext, cancellationToken)
+                .ContinueWith(task =>
+                {
+                    using (_speakerRepository)
+                    {
+                        if (task != null && task.Status != TaskStatus.Faulted)
+                            _speakerRepository.SaveChanges();
+                    }
+
+                    return task;
+                }).Unwrap();
         }
     }
 }
