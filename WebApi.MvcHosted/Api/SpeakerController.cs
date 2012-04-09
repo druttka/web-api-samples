@@ -9,7 +9,8 @@ using WebApi.MvcHosted.Filters;
 
 namespace WebApi.SelfHosted.Api.Controllers
 {
-    [TokenAuth]
+    //[TokenAuth]
+    [Authorize]
     public class SpeakerController : ApiController
     {
         private readonly ISpeakerRepository _speakerRepository;

@@ -12,3 +12,22 @@
         <li>@s.Name (Fame is @fame)</li>
     }
 </ul>
+
+<form action="/api/speaker/" method="post" id="add-speaker">
+    <fieldset>
+        <legend>Why not add some more?</legend>
+        <div class="editor-field">
+            @Html.Label("name", "Name:")
+            @Html.TextBox("name")
+        </div>
+    
+        <div class="editor-field">
+            @Html.Label("fame", "Fame:")
+            @Html.TextBox("fame")
+        </div>
+    
+        <div>
+            <input type="submit" value="Add" />
+        </div>
+    </fieldset>
+</form>
