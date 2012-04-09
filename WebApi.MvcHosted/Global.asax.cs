@@ -3,13 +3,12 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using WebApi.SelfHosted.Handlers;
 using WebApi.Common;
+using Autofac;
 using WebApi.SelfHosted.Api.Controllers;
+using System;
 
 namespace WebApi.MvcHosted
 {
-    // Note: For instructions on enabling IIS6 or IIS7 classic mode, 
-    // visit http://go.microsoft.com/?LinkId=9394801
-
     public class WebApiApplication : System.Web.HttpApplication
     {
         public static void RegisterGlobalFilters(GlobalFilterCollection filters)
@@ -48,16 +47,39 @@ namespace WebApi.MvcHosted
 
         private void RegisterDependencies()
         {
-            GlobalConfiguration.Configuration.ServiceResolver.SetResolver(
-                t =>
-                {
-                    return (t == typeof(SpeakerController)) ? new SpeakerController(new FakeSpeakerRepository()) : null;
-                },
-                t =>
-                {
-                    return (t == typeof(SpeakerController)) ? new[] { new SpeakerController(new FakeSpeakerRepository()) } : new object[] {};
-                }
-                );
+            // One way to do it:
+            //GlobalConfiguration.Configuration.ServiceResolver.SetResolver(
+            //    t =>
+            //    {
+            //        return (t == typeof(SpeakerController)) ? new SpeakerController(new FakeSpeakerRepository()) : null;
+            //    },
+            //    t =>
+            //    {
+            //        return (t == typeof(SpeakerController)) ? new[] { new SpeakerController(new FakeSpeakerRepository()) } : new object[] {};
+            //    }
+            //    );
+
+            // Another way to do it:
+            var builder = new ContainerBuilder();
+            builder.RegisterType<FakeSpeakerRepository>().As<ISpeakerRepository>();
+            builder.RegisterType<SpeakerController>();
+            var container = builder.Build();
+
+            //GlobalConfiguration.Configuration.ServiceResolver.SetResolver(
+            //        type =>
+            //        {
+            //            try { return container.Resolve(type); }
+            //            catch { return null; }
+            //        },
+            //        type =>
+            //        {
+            //            try { return new[] { container.Resolve(type) }; }
+            //            catch { return new object[] { }; }
+            //        }
+            //    );
+
+            // Another way to do it:
+            GlobalConfiguration.Configuration.ServiceResolver.SetResolver(new AutofacResolver(container));
         }
     }
 }
