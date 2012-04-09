@@ -1,0 +1,14 @@
+﻿@model IEnumerable<WebApi.Common.Speaker>
+
+@{
+    ViewBag.Title = "Speaker Index";
+}
+
+<h2>Speakers</h2>
+<ul>
+    @foreach (var s in Model)
+    {
+        var fame = s.Fame > 9000 ? "OVER 9000!!!" : s.Fame.ToString();
+        <li>@s.Name (Fame is @fame)</li>
+    }
+</ul>

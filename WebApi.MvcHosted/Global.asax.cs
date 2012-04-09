@@ -91,7 +91,11 @@ namespace WebApi.MvcHosted
             //    );
 
             // Another way to do it:
-            GlobalConfiguration.Configuration.ServiceResolver.SetResolver(new AutofacResolver());
+            var resolver = new AutofacResolver();
+            GlobalConfiguration.Configuration.ServiceResolver.SetResolver(resolver);
+
+            // Old MVC
+            DependencyResolver.SetResolver(resolver);
         }
 
         private void RegisterFormatters(HttpConfiguration config)
