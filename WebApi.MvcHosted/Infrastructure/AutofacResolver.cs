@@ -1,5 +1,7 @@
 using System;
 using Autofac;
+using WebApi.SelfHosted.Api.Controllers;
+using WebApi.Common;
 
 namespace WebApi.MvcHosted.Infrastructure
 {
@@ -9,10 +11,17 @@ namespace WebApi.MvcHosted.Infrastructure
     public class AutofacResolver : System.Web.Http.Services.IDependencyResolver
     {
         private readonly IContainer _container;
+
+        public AutofacResolver()
+        {
+            _container = CreateDefaultContainer();
+        }
+
         public AutofacResolver(IContainer container)
         {
             _container = container;
         }
+
         public System.Object GetService(System.Type serviceType)
         {
             try
@@ -36,6 +45,14 @@ namespace WebApi.MvcHosted.Infrastructure
 
                 return new object[] { };
             }
+        }
+
+        private IContainer CreateDefaultContainer()
+        {
+            var builder = new ContainerBuilder();
+            builder.RegisterType<FakeSpeakerRepository>().As<ISpeakerRepository>();
+            builder.RegisterType<SpeakerController>();
+            return builder.Build();
         }
     }
 }

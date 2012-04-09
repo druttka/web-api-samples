@@ -61,10 +61,10 @@ namespace WebApi.MvcHosted
             //    );
 
             // Another way to do it:
-            var builder = new ContainerBuilder();
-            builder.RegisterType<FakeSpeakerRepository>().As<ISpeakerRepository>();
-            builder.RegisterType<SpeakerController>();
-            var container = builder.Build();
+            //var builder = new ContainerBuilder();
+            //builder.RegisterType<FakeSpeakerRepository>().As<ISpeakerRepository>();
+            //builder.RegisterType<SpeakerController>();
+            //var container = builder.Build();
 
             //GlobalConfiguration.Configuration.ServiceResolver.SetResolver(
             //        type =>
@@ -80,7 +80,7 @@ namespace WebApi.MvcHosted
             //    );
 
             // Another way to do it:
-            GlobalConfiguration.Configuration.ServiceResolver.SetResolver(new AutofacResolver(container));
+            GlobalConfiguration.Configuration.ServiceResolver.SetResolver(new AutofacResolver());
         }
     }
 }
