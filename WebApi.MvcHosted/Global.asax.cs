@@ -6,7 +6,10 @@ using System;
 using WebApi.MvcHosted.Infrastructure;
 using Raven.Client;
 using Raven.Client.Document;
-using WebApi.MvcHosted.Filters;
+using System.Linq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using WebApi.MvcHosted.Formatters;
 
 namespace WebApi.MvcHosted
 {
@@ -49,6 +52,7 @@ namespace WebApi.MvcHosted
             InitializeRavenDb();
 
             RegisterDependencies();
+            RegisterFormatters(GlobalConfiguration.Configuration);
 
             //GlobalConfiguration.Configuration.Filters.Add(new LogErrorFilter());
         }
@@ -88,6 +92,20 @@ namespace WebApi.MvcHosted
 
             // Another way to do it:
             GlobalConfiguration.Configuration.ServiceResolver.SetResolver(new AutofacResolver());
+        }
+
+        private void RegisterFormatters(HttpConfiguration config)
+        {
+            // Create Json.Net formatter serializing DateTime using the ISO 8601 format
+            JsonSerializerSettings serializerSettings = new JsonSerializerSettings();
+            serializerSettings.Converters.Add(new IsoDateTimeConverter());
+
+            var defaultJsonFormatter = config.Formatters.First(
+                x => x.SupportedMediaTypes.Any(s => string.Compare(s.MediaType, "application/json", true) == 0)
+            );
+
+            var index = config.Formatters.IndexOf(defaultJsonFormatter);
+            config.Formatters[index] = new JsonNetFormatter(serializerSettings);
         }
 
         private void InitializeRavenDb()
