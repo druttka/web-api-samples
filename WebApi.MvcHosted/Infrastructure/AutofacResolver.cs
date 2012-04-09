@@ -52,7 +52,7 @@ namespace WebApi.MvcHosted.Infrastructure
         {
             var builder = new ContainerBuilder();
             builder.Register(t => { return WebApiApplication.DocumentStore.OpenSession(); }).As<IDocumentSession>();
-            builder.RegisterType<RavenSpeakerRepository>().As<ISpeakerRepository>();
+            builder.RegisterType<FakeSpeakerRepository>().As<ISpeakerRepository>();
             builder.RegisterType<SpeakerController>();
 
             return builder.Build();
