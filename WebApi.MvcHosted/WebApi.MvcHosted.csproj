@@ -159,6 +159,7 @@
     <Compile Include="Controllers\UserController.cs" />
     <Compile Include="Filters\TokenAuthAttribute.cs" />
     <Compile Include="Formatters\JsonNetFormatter.cs" />
+    <Compile Include="Formatters\JsonpMediaTypeFormatter.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>

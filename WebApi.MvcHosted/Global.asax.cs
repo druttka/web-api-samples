@@ -110,7 +110,9 @@ namespace WebApi.MvcHosted
             );
 
             var index = config.Formatters.IndexOf(defaultJsonFormatter);
-            config.Formatters[index] = new JsonNetFormatter(serializerSettings);
+            //config.Formatters[index] = new JsonNetFormatter(serializerSettings);
+
+            config.Formatters[index] = new JsonpMediaTypeFormatter();
         }
 
         private void InitializeRavenDb()

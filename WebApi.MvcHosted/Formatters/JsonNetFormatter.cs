@@ -22,6 +22,8 @@ namespace WebApi.MvcHosted.Formatters
 
             // Fill out the mediatype and encoding we support
             SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/json"));
+            SupportedMediaTypes.Add(new MediaTypeHeaderValue("text/javascript")); 
+
             Encoding = new UTF8Encoding(false, true);
         }
 
