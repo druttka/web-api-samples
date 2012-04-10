@@ -7,8 +7,8 @@ $(function () {
             type: 'POST',
             url: '/api/speaker',
             success: function (data, textStatus, jqXHR) {
-                                    $('<li>').html(data.Name + " (Fame is " + data.Fame + ")")
-                                        .appendTo($('#speaker-list'));
+                $('<li>').html(data.Name + " (Fame is " + data.Fame + ")")
+                    .appendTo($('#speaker-list'));
                 $.getJSON("/api/speaker?callback=?", null,
                     function (speakers) {
                         alert(speakers.length);
