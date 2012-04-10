@@ -50,18 +50,17 @@ namespace WebApi.MvcHosted
             RegisterGlobalFilters(GlobalFilters.Filters);
             RegisterRoutes(RouteTable.Routes);
 
-            InitializeRavenDb();
+            var config = GlobalConfiguration.Configuration;
 
-            RegisterDependencies();
-            RegisterFormatters(GlobalConfiguration.Configuration);
-
-            GlobalConfiguration.Configuration.Filters.Add(new LogErrorFilter());
+            RegisterDependencies(config);
+            RegisterFormatters(config);
+            RegisterFilters(config);
         }
 
-        private void RegisterDependencies()
+        private void RegisterDependencies(HttpConfiguration config)
         {
             // One way to do it:
-            //GlobalConfiguration.Configuration.ServiceResolver.SetResolver(
+            //config.ServiceResolver.SetResolver(
             //    t =>
             //    {
             //        return (t == typeof(SpeakerController)) ? new SpeakerController(new FakeSpeakerRepository()) : null;
@@ -78,7 +77,7 @@ namespace WebApi.MvcHosted
             //builder.RegisterType<SpeakerController>();
             //var container = builder.Build();
 
-            //GlobalConfiguration.Configuration.ServiceResolver.SetResolver(
+            //config.ServiceResolver.SetResolver(
             //        type =>
             //        {
             //            try { return container.Resolve(type); }
@@ -93,9 +92,9 @@ namespace WebApi.MvcHosted
 
             // Another way to do it:
             var resolver = new AutofacResolver();
-            GlobalConfiguration.Configuration.ServiceResolver.SetResolver(resolver);
+            config.ServiceResolver.SetResolver(resolver);
 
-            // Old MVC
+            // Note here that the System.Web.Mvc resolver is still it's own separate deal
             DependencyResolver.SetResolver(resolver);
         }
 
@@ -115,10 +114,9 @@ namespace WebApi.MvcHosted
             //config.Formatters[index] = new JsonpMediaTypeFormatter(serializerSettings);
         }
 
-        private void InitializeRavenDb()
+        private void RegisterFilters(HttpConfiguration config)
         {
-            _documentStore = new DocumentStore {ConnectionStringName="Raven"};
-            _documentStore.Initialize();
+            config.Filters.Add(new LogErrorFilter());
         }
     }
 }
