@@ -5,11 +5,9 @@ using WebApi.SelfHosted.Handlers;
 using System;
 using WebApi.MvcHosted.Infrastructure;
 using Raven.Client;
-using Raven.Client.Document;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using WebApi.MvcHosted.Formatters;
 using WebApi.MvcHosted.Filters;
 
 namespace WebApi.MvcHosted
