@@ -54,7 +54,7 @@ namespace WebApi.MvcHosted.Infrastructure
         {
             var builder = new ContainerBuilder();
             builder.Register(t => { return WebApiApplication.DocumentStore.OpenSession(); }).As<IDocumentSession>();
-            builder.RegisterType<FakeSpeakerRepository>().As<ISpeakerRepository>();
+            builder.RegisterType<EFSpeakerRepository>().As<ISpeakerRepository>();
             builder.RegisterType<SpeakerController>();
             builder.RegisterType<HomeController>();
 
