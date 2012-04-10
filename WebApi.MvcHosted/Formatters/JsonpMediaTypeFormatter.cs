@@ -7,20 +7,21 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Web;
 using System.Net.Http;
+using Newtonsoft.Json;
 
 namespace WebApi.MvcHosted.Formatters
 {
 
-    public class JsonpMediaTypeFormatter : JsonMediaTypeFormatter
+    public class JsonpMediaTypeFormatter : JsonNetFormatter
     {
         private string callbackQueryParameter;
 
-        public JsonpMediaTypeFormatter()
+        public JsonpMediaTypeFormatter(JsonSerializerSettings serializerSettings) : base(serializerSettings)
         {
-            SupportedMediaTypes.Add(DefaultMediaType);
+            SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/json"));
             SupportedMediaTypes.Add(new MediaTypeHeaderValue("text/javascript"));
 
-            MediaTypeMappings.Add(new UriPathExtensionMapping("jsonp", DefaultMediaType));
+            MediaTypeMappings.Add(new UriPathExtensionMapping("jsonp", "application/json"));
         }
 
         public string CallbackQueryParameter
