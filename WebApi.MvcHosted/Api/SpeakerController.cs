@@ -5,12 +5,11 @@ using System.Net.Http;
 using System.Net;
 using System;
 using System.Threading.Tasks;
-using WebApi.MvcHosted.Filters;
 
 namespace WebApi.SelfHosted.Api.Controllers
 {
     //[TokenAuth]
-    [Authorize]
+    //[Authorize]
     public class SpeakerController : ApiController
     {
         private readonly ISpeakerRepository _speakerRepository;

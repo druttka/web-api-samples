@@ -10,6 +10,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using WebApi.MvcHosted.Formatters;
+using WebApi.MvcHosted.Filters;
 
 namespace WebApi.MvcHosted
 {
@@ -54,7 +55,7 @@ namespace WebApi.MvcHosted
             RegisterDependencies();
             RegisterFormatters(GlobalConfiguration.Configuration);
 
-            //GlobalConfiguration.Configuration.Filters.Add(new LogErrorFilter());
+            GlobalConfiguration.Configuration.Filters.Add(new LogErrorFilter());
         }
 
         private void RegisterDependencies()
