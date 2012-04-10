@@ -33,31 +33,5 @@
 </form>
 
 @section script{
-<script type="text/javascript">
-    $(function () {
-        $('input[type="submit"]', $('#add-speaker')).click(function () {
-            var postData = { name: $('input[name="name"]').val(), fame: $('input[name="fame"]').val() };
-            $.ajax({
-                data: postData,
-                type: 'POST',
-                url: '/api/speaker',
-                success: function (data, textStatus, jqXHR) {
-                                        $('<li>').html(data.Name + " (Fame is " + data.Fame + ")")
-                                            .appendTo($('#speaker-list'));
-                    $.getJSON("/api/speaker?callback=?", null,
-                      function (speakers) {
-                          alert(speakers.length);
-                      });
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    if (jqXHR.status == 401)
-                        alert('gotta login first');
-                    else
-                        alert('oh phooey. check fiddler');
-                }
-            });
-            return false;
-        });
-    });
-</script>
+    <script type="text/javascript" src="@Url.Content("~/Scripts/speakers.js")"></script>
 }

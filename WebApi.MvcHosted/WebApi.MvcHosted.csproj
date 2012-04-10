@@ -167,6 +167,7 @@
     <Compile Include="Filters\LogErrorFilter.cs" />
     <Compile Include="Infrastructure\SuppressFormsAuthenticationRedirectModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Content Include="Scripts\speakers.js" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Global.asax" />
