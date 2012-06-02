@@ -35,20 +35,18 @@ namespace WebApi.SelfHosted.Handlers
                     else
                         return response;
 
-                    // HACK: We're going to temporarily update the RequestUri and put it back later. In previous
-                    // versions, we created a new HttpRequestMessage, but this saves us from a lot of cloning.
-                    // Use at your own risk ;)
-                    var originalUriString = request.RequestUri.AbsoluteUri;
-                    var newUriString = request.RequestUri.AbsoluteUri.Replace("$skip=", "$_skip=").Replace("$top=", "$_top=");
-                    request.RequestUri = new Uri(newUriString);
+                    // Reissue the request without a skip/take to get our count. This will preserve filtering which
+                    // could affect the count
+                    var newRequest = new HttpRequestMessage(
+                        request.Method,
+                        request.RequestUri.AbsoluteUri.Replace("$skip=", "$_skip=").Replace("$top=", "$_top="));
+                    request.Headers.ToList().ForEach(h => newRequest.Headers.Add(h.Key, h.Value));
+                    newRequest.Content = request.Content;
 
                     // Reissue the request without a skip/take to get our count. This will preserve filtering which
                     // could affect the count
-                    var unpagedResult = base.SendAsync(request, cancellationToken).Result;
+                    var unpagedResult = base.SendAsync(newRequest, cancellationToken).Result;
                     var unpagedResultsValue = this.GetValueFromObjectContent(unpagedResult.Content);
-
-                    // HACK: See above hack.
-                    request.RequestUri = new Uri(originalUriString);
 
                     var resultsValueMethod =
                         this.GetType().GetMethod(
