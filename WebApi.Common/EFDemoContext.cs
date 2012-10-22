@@ -1,6 +1,6 @@
 ﻿using System.Data.Entity;
 
-namespace WebApi.Common
+namespace WebApi.Data
 {
     public class EFDemoContext : DbContext
     {

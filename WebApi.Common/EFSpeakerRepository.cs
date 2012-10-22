@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace WebApi.Common
+namespace WebApi.Data
 {
     public class EFSpeakerRepository : ISpeakerRepository
     {

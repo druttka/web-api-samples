@@ -1,7 +1,8 @@
-﻿using System.Web.Http;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Web.Http.SelfHost;
-using System;
-using WebApi.SelfHosted.Handlers;
+using System.Web.Http;
 
 namespace WebApi.SelfHosted
 {
@@ -11,23 +12,23 @@ namespace WebApi.SelfHosted
         {
             var config = CreateSelfHostConfiguration();
             StartServer(config);
-            
-            Console.WriteLine("q to quit");
-            while (string.Compare(Console.ReadLine(), "q", true) != 0);
+
+            Console.WriteLine("ASP.NET Web API started. Press q to quit...");
+            while (Console.Read() != (char)'q');
         }
 
         private static HttpSelfHostConfiguration CreateSelfHostConfiguration()
         {
             // Setup server configuration 
             const string baseAddress = "http://localhost:8081/";
+
             var config = new HttpSelfHostConfiguration(baseAddress);
             config.Routes.MapHttpRoute(
                 name: "DefaultApi",
                 routeTemplate: "api/{controller}/{id}",
                 defaults: new { id = RouteParameter.Optional }
             );
-            
-            config.MessageHandlers.Add(new InlineCountHandler());
+
             return config;
         }
 

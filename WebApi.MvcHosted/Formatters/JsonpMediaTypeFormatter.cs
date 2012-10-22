@@ -1,76 +1,85 @@
-﻿//https://raw.github.com/thinktecture/Thinktecture.Web.Http/master/Thinktecture.Web.Http/Formatters/JsonpFormatter.cs
+﻿// Adapted from git://gist.github.com/2967547.git, jonathanhunt
 using System;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Net.Http.Formatting;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
-using System.Web;
-using System.Net.Http;
 using Newtonsoft.Json;
 
-namespace WebApi.MvcHosted.Formatters
+namespace WebApi.Shared
 {
-
-    public class JsonpMediaTypeFormatter : JsonNetFormatter
+    /// <summary>
+    /// Custom WebAPI media type formatter for the streaming JSONP data to the API consumer
+    /// </summary>
+    public class JsonpMediaTypeFormatter : JsonMediaTypeFormatter
     {
-        private string callbackQueryParameter;
+        private readonly string _callbackQueryParameter;
 
-        public JsonpMediaTypeFormatter(JsonSerializerSettings serializerSettings) : base(serializerSettings)
+        public JsonpMediaTypeFormatter(string callbackQueryParameter)
         {
+            _callbackQueryParameter = callbackQueryParameter ?? "callback";
             SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/json"));
             SupportedMediaTypes.Add(new MediaTypeHeaderValue("text/javascript"));
-
-            MediaTypeMappings.Add(new UriPathExtensionMapping("jsonp", "application/json"));
         }
 
-        public string CallbackQueryParameter
+        private string CallbackFunction { get; set; }
+
+        public override bool CanReadType(Type type)
         {
-            get { return callbackQueryParameter ?? "callback"; }
-            set { callbackQueryParameter = value; }
+            return true;
         }
 
-        protected override Task OnWriteToStreamAsync(Type type, object value, Stream stream,
-                                                     HttpContentHeaders contentHeaders,
-                                                     FormatterContext formatterContext,
-                                                     TransportContext transportContext)
+        public override bool CanWriteType(Type type)
         {
-            string callback;
+            return true;
+        }
 
-            if (IsJsonpRequest(formatterContext.Response.RequestMessage, out callback))
+        public override Task WriteToStreamAsync(Type type, object value, Stream writeStream, HttpContent content, TransportContext transportContext)
+        {
+            var isJsonp = !string.IsNullOrEmpty(CallbackFunction);
+
+            if (!isJsonp)
+                return base.WriteToStreamAsync(type, value, writeStream, content, transportContext);
+
+            return Task.Factory.StartNew(() =>
             {
-                return Task.Factory.StartNew(() =>
+                using (var jsonTextWriter = new JsonTextWriter(new StreamWriter(writeStream, Encoding.UTF8)) { CloseOutput = false })
                 {
-                    var writer = new StreamWriter(stream);
-                    writer.Write(callback + "(");
-                    writer.Flush();
+                    jsonTextWriter.WriteRaw(CallbackFunction + "(");
 
-                    base.OnWriteToStreamAsync(type, value, stream, contentHeaders,
-                                            formatterContext, transportContext).Wait();
+                    var serializer = new JsonSerializer();
+                    serializer.Serialize(jsonTextWriter, value);
 
-                    writer.Write(")");
-                    writer.Flush();
-                });
-            }
-            else
-            {
-                return base.OnWriteToStreamAsync(type, value, stream, contentHeaders, formatterContext, transportContext);
-            }
+                    jsonTextWriter.WriteRaw(")");
+
+                    jsonTextWriter.Flush();
+                }
+            });
         }
 
-        private bool IsJsonpRequest(HttpRequestMessage request, out string callback)
+        public override MediaTypeFormatter GetPerRequestFormatterInstance(Type type, HttpRequestMessage request, MediaTypeHeaderValue mediaType)
         {
-            callback = null;
-
-            if (request.Method != HttpMethod.Get)
+            var formatter = new JsonpMediaTypeFormatter(_callbackQueryParameter)
             {
-                return false;
-            }
+                CallbackFunction = GetJsonCallbackFunction(request)
+            };
 
-            var query = HttpUtility.ParseQueryString(request.RequestUri.Query);
-            callback = query[CallbackQueryParameter];
+            return formatter;
+        }
 
-            return !string.IsNullOrEmpty(callback);
+        private string GetJsonCallbackFunction(HttpRequestMessage request)
+        {
+            if (request.Method != HttpMethod.Get) return null;
+
+            var query = request.RequestUri.ParseQueryString();
+            var queryVal = query[_callbackQueryParameter];
+
+            if (string.IsNullOrEmpty(queryVal)) return null;
+
+            return queryVal;
         }
     }
 }

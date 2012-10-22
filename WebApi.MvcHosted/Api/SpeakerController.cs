@@ -1,24 +1,24 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Web.Http;
-using WebApi.Common;
+using WebApi.Data;
 using System.Net.Http;
 using System.Net;
 using System;
 using System.Threading.Tasks;
+using System.Threading;
+using WebApi.MvcHosted.Filters;
 
-namespace WebApi.SelfHosted.Api.Controllers
+namespace WebApi.MvcHosted.Api
 {
-    //[TokenAuth]
-    //[Authorize]
+    [TokenAuth]
+    [AllYourErrorsAreTeapotsFilter]
     public class SpeakerController : ApiController
     {
+        private bool _isDisposed = false;
         private readonly ISpeakerRepository _speakerRepository;
 
         public SpeakerController(ISpeakerRepository speakerRepository)
         {
-            if (speakerRepository == null)
-                throw new ArgumentNullException("speakerRepository");
-
             _speakerRepository = speakerRepository;
         }
 
@@ -27,20 +27,20 @@ namespace WebApi.SelfHosted.Api.Controllers
             return _speakerRepository.All;
         }
 
-        public HttpResponseMessage<Speaker> Get(int id)
+        public HttpResponseMessage Get(int id)
         {
             var speaker = _speakerRepository.Find(id);
 
             if (speaker == null)
                 throw new HttpResponseException(HttpStatusCode.NotFound);
 
-            return new HttpResponseMessage<Speaker>(speaker);
+            return Request.CreateResponse<Speaker>(HttpStatusCode.OK, speaker);
         }
 
-        public HttpResponseMessage<Speaker> Post(Speaker speaker)
+        public HttpResponseMessage Post(Speaker speaker)
         {
             _speakerRepository.Store(speaker);
-            return new HttpResponseMessage<Speaker>(speaker, HttpStatusCode.Created);
+            return Request.CreateResponse<Speaker>(HttpStatusCode.Created, speaker);
         }
 
         public HttpResponseMessage Put(Speaker speaker)
@@ -61,19 +61,36 @@ namespace WebApi.SelfHosted.Api.Controllers
             return new HttpResponseMessage(HttpStatusCode.NoContent);
         }
 
-        public override Task<HttpResponseMessage> ExecuteAsync(System.Web.Http.Controllers.HttpControllerContext controllerContext, System.Threading.CancellationToken cancellationToken)
+        public override Task<HttpResponseMessage> ExecuteAsync(System.Web.Http.Controllers.HttpControllerContext controllerContext, CancellationToken cancellationToken)
         {
             return base.ExecuteAsync(controllerContext, cancellationToken)
                 .ContinueWith(task =>
                 {
-                    using (_speakerRepository)
-                    {
-                        if (task != null && task.Status != TaskStatus.Faulted)
-                            _speakerRepository.SaveChanges();
-                    }
-
+                    if (task != null && task.Status != TaskStatus.Faulted)
+                        _speakerRepository.SaveChanges();
+                 
                     return task;
                 }).Unwrap();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (_isDisposed)
+                return;
+
+            if (disposing)
+            {
+                if (_speakerRepository != null)
+                    _speakerRepository.Dispose();
+            }
+
+            base.Dispose(disposing);
+            _isDisposed = true;
+        }
+
+        ~SpeakerController()
+        {
+            this.Dispose(false);
         }
     }
 }
