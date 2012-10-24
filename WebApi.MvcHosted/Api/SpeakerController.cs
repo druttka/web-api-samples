@@ -11,7 +11,7 @@ using WebApi.MvcHosted.Filters;
 namespace WebApi.MvcHosted.Api
 {
     [TokenAuth]
-    [AllYourErrorsAreTeapotsFilter]
+    //[AllYourErrorsAreTeapotsFilter]
     public class SpeakerController : ApiController
     {
         private bool _isDisposed = false;
