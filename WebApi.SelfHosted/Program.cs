@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web.Http.SelfHost;
 using System.Web.Http;
+using WebApi.SelfHosted.Handlers;
 
 namespace WebApi.SelfHosted
 {
@@ -29,6 +30,7 @@ namespace WebApi.SelfHosted
                 defaults: new { id = RouteParameter.Optional }
             );
 
+            config.MessageHandlers.Add(new InlineCountHandler());
             return config;
         }
 

@@ -11,6 +11,7 @@ using WebApi.MvcHosted.Filters;
 namespace WebApi.MvcHosted.Api
 {
     [TokenAuth]
+    [Queryable]
     //[AllYourErrorsAreTeapotsFilter]
     public class SpeakerController : ApiController
     {

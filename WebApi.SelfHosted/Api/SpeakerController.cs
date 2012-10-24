@@ -9,6 +9,7 @@ using System.Threading;
 
 namespace WebApi.MvcHosted.Api
 {
+    [Queryable]
     public class SpeakerController : ApiController
     {
         private readonly ISpeakerRepository _speakerRepository = new FakeSpeakerRepository();
