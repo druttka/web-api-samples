@@ -15,21 +15,27 @@ $(function () {
 
                 $.ajax({
                     beforeSend: function (jqXHR) {
-                        jqXHR.setRequestHeader('Authorization', 'Token token="foobarbaz"');
+                        //jqXHR.setRequestHeader('Authorization', 'Token token="foobarbaz"');
                     },
                     dataType: 'jsonp',
                     url: '/api/speaker',
                     type: 'GET',
                     success: function (speakers) {
                         console.log(speakers.length);
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        if (jqXHR.status === 401)
+                            console.log('gotta login first');
+                        else
+                            console.log('oh phooey. check fiddler');
                     }
                 });
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 if (jqXHR.status === 401)
-                    alert('gotta login first');
+                    console.log('gotta login first');
                 else
-                    alert('oh phooey. check fiddler');
+                    console.log('oh phooey. check fiddler');
             }
         });
         return false;
