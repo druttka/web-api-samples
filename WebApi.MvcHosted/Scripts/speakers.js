@@ -1,4 +1,6 @@
 ﻿/// <reference path="/Scripts/jquery-1.7.1.min.js" />
+
+// TODO: This is very sloppy just to facilitate the samples and should be brought up to standard.
 $(function () {
     $('input[type="submit"]', $('#add-speaker')).click(function () {
         var postData = { name: $('input[name="name"]').val(), fame: $('input[name="fame"]').val() };
